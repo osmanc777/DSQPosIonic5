@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      MPOS Demo
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <!-- <link rel="stylesheet" href="home.page.scss"> -->
+    <ion-toolbar>
+      <ion-title size="large">MPOS Demo</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div>
+    <button (click)="scanQPos2Mode()" class="ButtonStyle">scan</button>
+    <button (click)="dotrade()" class="ButtonStyle">start trade</button>
+    <button (click)="disConnectBT()" class="ButtonStyle">disconnect</button>
+    <button (click)="updateEMVConfigureByXml()" class="ButtonStyle">updateEMVConfigure</button>
+  </div>
+
+  <ion-list class="ion-margin-top" *ngIf="listMpos.length > 0">
+    <ion-list-header>
+      <ion-label>Dispositivos</ion-label>
+    </ion-list-header>
+
+    <ion-item button *ngFor="let device of listMpos" (click)="connect(device)">
+      <ion-label>{{device.name}}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <textarea id="posResult" style="overflow:scroll; overflow-x:hidden; height:350px;width:90%; margin-top: 10px; margin-left: 5%; margin-right: 5%; margin-bottom: 20px; display: none;" ></textarea>
+
+</ion-content>
