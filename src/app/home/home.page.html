@@ -15,13 +15,15 @@
   </ion-header>
 
   <div>
-    <button (click)="scanQPos2Mode()" class="ButtonStyle">scan</button>
-    <button (click)="dotrade()" class="ButtonStyle">start trade</button>
-    <button (click)="disConnectBT()" class="ButtonStyle">disconnect</button>
-    <button (click)="updateEMVConfigureByXml()" class="ButtonStyle">updateEMVConfigure</button>
+    <button (click)="scanQPos2Mode()" class="ButtonStyle">Buscar MPOS</button>
+    <button (click)="dotrade()" class="ButtonStyle">Realizar Cobro</button>
+    <button (click)="disConnectBT()" class="ButtonStyle">Desconectar</button>
+    <button (click)="getQposInfo()" class="ButtonStyle">Qpos Info</button>
+    <button (click)="getQposId()" class="ButtonStyle">Qpos ID</button>
+    <!-- <button (click)="updateEMVConfigureByXml()" class="ButtonStyle">updateEMVConfigure</button> -->
   </div>
 
-  <ion-list class="ion-margin-top" *ngIf="listMpos.length > 0">
+  <ion-list class="ion-margin-top">
     <ion-list-header>
       <ion-label>Dispositivos</ion-label>
     </ion-list-header>

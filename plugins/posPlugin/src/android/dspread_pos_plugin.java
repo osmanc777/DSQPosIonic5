@@ -508,7 +508,7 @@ public class dspread_pos_plugin extends CordovaPlugin {
 				TRACE.d("bad_swipe");
 				callbackResult(PluginResult.Status.ERROR, "bad_swipe");
 			} else if (arg0 == DoTradeResult.MCR) {//
-				String content ="Swipe Card:";
+				String content ="SwipeCard:" + "\n";
 				String formatID = arg1.get("formatID");
 				if (formatID.equals("31") || formatID.equals("40") || formatID.equals("37") || formatID.equals("17") || formatID.equals("11") || formatID.equals("10")) {
 					String maskedPAN = arg1.get("maskedPAN");
@@ -963,6 +963,7 @@ public class dspread_pos_plugin extends CordovaPlugin {
 		public void onRequestDeviceScanFinished() {
 			TRACE.i("scan finished");
 			Toast.makeText(activity,"scan finished",Toast.LENGTH_LONG).show();
+			callbackKeepResult(PluginResult.Status.OK, "scan_finished");
 		}
 
 		@Override

@@ -17,6 +17,7 @@ export class HomePage {
 
   cardDetail: any;
   paramPos: any;
+  onQposScaning = false; // scanear MPOS:
   onQposConnected = false; // Conecto MPOS:
   onQposDisconnected = false; // Desconecto MPOS:
   onQposNoDetected = false; // no encontro MPOS:
@@ -36,40 +37,29 @@ export class HomePage {
   objectCardData: any = {};
 
   constructor(private btSerial: BluetoothSerial, private platform: Platform, private toastCtrl: ToastController,
-              private alertCtrl: AlertController) {
-    console.log('init....');
-  }
+              private alertCtrl: AlertController) {}
 
-  scanQPos2Mode(): void{
+  scanQPos2Mode(): void {
     console.log('scanQPos2Mode');
-    // const txtresult = document.getElementById('posResult');
     const txtresult: HTMLInputElement = document.getElementById('posResult') as HTMLInputElement;
     txtresult.style.display = 'none';
     this.resetStates();
-
-    if (this.platform.is('cordova')) {
-      this.btSerial.list().then(data => {
-        console.log('Dispositivos: ', data);
-        this.listMpos = data;
-      }).catch(error => {
-        this.posresult(error);
-        console.log('Error al listar: ', error);
-      });
-    } else {
-      console.log('estas en web');
-    }
+    this.presentToastInfo('Buscando MPOS...');
 
     cordova.plugins.dspread_pos_plugin.scanQPos2Mode((success: any) => {
-      console.log('termino scan');
       console.log('scanQPos2Mode->success: ' + success);
+      this.posresult(success);
     }, (fail: any) => {
       console.log('scanQPos2Mode->fail: ' + fail);
       this.posresult(fail);
     }, 30);
+
+    setTimeout(() => {
+      this.showDevice();
+    }, 10500);
   }
 
   dotrade() {
-    console.log('dotrade');
     this.resetStates();
 
     cordova.plugins.dspread_pos_plugin.doTrade((success: any) => {
@@ -82,7 +72,6 @@ export class HomePage {
   }
 
   disConnectBT() {
-    console.log('disConnectBT');
     cordova.plugins.dspread_pos_plugin.disconnectBT((success: any) => {
       console.log('disConnectBT->success: ' + success);
       this.posresult(success);
@@ -90,6 +79,26 @@ export class HomePage {
       console.log('disConnectBT->fail: ' + fail);
       this.posresult(fail);
     });
+  }
+
+  getQposInfo() {
+    cordova.plugins.dspread_pos_plugin.getQposInfo((success: any) => {
+      console.log('dotrade->success: ' + success);
+      this.posresult(success);
+    }, (fail: any) => {
+      console.log('dotrade->fail: ' + fail);
+      this.posresult(fail);
+    }, 30);
+  }
+
+  getQposId() {
+    cordova.plugins.dspread_pos_plugin.getQposId((success: any) => {
+      console.log('dotrade->success: ' + success);
+      this.posresult(success);
+    }, (fail: any) => {
+      console.log('dotrade->fail: ' + fail);
+      this.posresult(fail);
+    }, 30);
   }
 
   updateEMVConfigureByXml() {
@@ -125,19 +134,15 @@ export class HomePage {
   getDataQpos(data: any) {
     this.paramPos = data;
 
-    if (this.paramPos !== undefined) {
-      this.paramPos.startsWith('Swipe') ? this.paramPos = 'getCard' : this.paramPos = data;
-      this.paramPos.startsWith('onRequestBatchData:') ? this.paramPos = 'getCardChip' : this.paramPos = data;
-    } else {
-      console.log('payLoad esta indefinido');
-    }
-
     console.log('*-----------*------------*---------------*');
     console.log('ParamPOS:', this.paramPos);
     console.log('*-----------*------------*---------------*');
 
     // Validaciones conexion desconexion y swipe
-    if (this.paramPos === 'onRequestQposConnected' && !this.onQposConnected) {
+    if (this.paramPos === 'scan_finished' && !this.onQposScaning) {
+      this.onQposScaning = true;
+      this.presentToastInfo('Selecciona el MPOS');
+    } else if (this.paramPos === 'onRequestQposConnected' && !this.onQposConnected) {
       this.onQposConnected = true;
       this.presentToastInfo('Conexión Exitosa');
 
@@ -162,7 +167,7 @@ export class HomePage {
       this.onQposNoCard = true;
       this.alertInfo('Error en Tarjeta', 'No se reconocio la tarjeta, vuelve a ingresarla');
 
-    } else if (this.paramPos.startsWith('Swipe Card:') && !this.onQposCardInfo) {
+    } else if (this.paramPos.startsWith('SwipeCard:') && !this.onQposCardInfo) {
       this.onQposCardInfo = true;
       this.alertInfo('Tarjeta Aceptada', 'Acepta para realizar el cobro');
       this.parseCard(data);
@@ -197,7 +202,7 @@ export class HomePage {
       console.log('Retira la tarjeta');
       this.presentToastInfo('Puedes retirar la tarjeta');
 
-    } else if (this.paramPos === 'getCardChip' && !this.resChip) {
+    } else if (this.paramPos.startsWith('onRequestBatchData:') && !this.resChip) {
       this.resChip = true;
       console.log('Respuesta del Chip: ', data);
       this.alertInfo('Tarjeta Aceptada Chip', 'Acepta para realizar el cobro');
@@ -205,15 +210,8 @@ export class HomePage {
     }
 
     else {
-      console.log('ninguna acción:', data);
-      console.log('************************');
-      console.log(data);
-      console.log('************************');
-      console.log('info: ', this.onQposCardInfo);
-      console.log('************************');
-      console.log('normal: ', this.paramPos.startsWith('Swipe Card:'));
-      console.log('************************');
-      console.log('swipess: ', this.paramPos.startsWith('Swipe'));
+      this.resetStates();
+      console.log('ninguna acción:', this.paramPos);
     }
   }
 
@@ -236,6 +234,21 @@ export class HomePage {
     });
 
     await alert.present();
+  }
+
+  showDevice() {
+    // if (this.platform.is('cordova')) {
+    this.btSerial.list().then((device: any) => {
+      this.listMpos = device;
+      console.log('Dispositivos: ', this.listMpos);
+      console.log('onQposScaning: ', this.onQposScaning);
+    }).catch(error => {
+      this.posresult(error);
+      console.log('Error al listar: ', error);
+    });
+    // } else {
+    //   console.log('estas en web');
+    // }
   }
 
   parseCard(card: any) {
@@ -261,6 +274,7 @@ export class HomePage {
   }
 
   resetStates() {
+    this.onQposScaning = false;
     this.onQposConnected = false;
     this.onQposDisconnected = false;
     this.onQposNoDetected = false;
